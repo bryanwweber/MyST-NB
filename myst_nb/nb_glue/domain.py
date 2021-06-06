@@ -215,6 +215,13 @@ class PasteFigure(Paste):
         return [figure_node]
 
 
+class PasteBokeh(Paste):
+    def run(self):
+        html_node = PasteNode(self.arguments[0])
+        js_node = PasteNode(self.arguments[0] + "_js")
+        return [html_node, js_node]
+
+
 def paste_any_role(name, rawtext, text, lineno, inliner, options=None, content=()):
     """This role will simply add the cell output"""
     path = inliner.document.current_source
@@ -249,7 +256,7 @@ def paste_text_role(name, rawtext, text, lineno, inliner, options=None, content=
 
 
 class NbGlueDomain(Domain):
-    """A sphinx domain for handling glue data """
+    """A sphinx domain for handling glue data"""
 
     name = "glue"
     label = "NotebookGlue"
@@ -260,7 +267,13 @@ class NbGlueDomain(Domain):
     # - docmap is the mapping of docnames to the set of keys it contains
     initial_data = {"cache": {}, "docmap": {}}
 
-    directives = {"": Paste, "any": Paste, "figure": PasteFigure, "math": PasteMath}
+    directives = {
+        "": Paste,
+        "any": Paste,
+        "figure": PasteFigure,
+        "math": PasteMath,
+        "bokeh": PasteBokeh,
+    }
 
     roles = {"": paste_any_role, "any": paste_any_role, "text": paste_text_role}
 

@@ -1,5 +1,5 @@
 import IPython
-from IPython.display import display as ipy_display
+from IPython.display import display as ipy_display, HTML, Javascript
 
 GLUE_PREFIX = "application/papermill.record/"
 
@@ -26,3 +26,17 @@ def glue(name, variable, display=True):
     ipy_display(
         {mime_prefix + k: v for k, v in mimebundle.items()}, raw=True, metadata=metadata
     )
+
+
+def glue_bokeh(name, figure, display=True):
+    # import here to avoid a hard dependency on bokeh
+    from bokeh.embed import components
+    from bokeh.resources import CDN
+    import xml.etree.ElementTree as ET
+
+    script, div = components(figure)
+    data = ET.fromstring(script).text
+    h = HTML(div)
+    s = Javascript(data, lib=CDN.js_files)
+    glue(name + "_js", s, display)
+    glue(name, h, display)
