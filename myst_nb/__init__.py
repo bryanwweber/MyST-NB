@@ -22,7 +22,7 @@ from sphinx.util.docutils import ReferenceRole, SphinxDirective
 
 from .exec_table import setup_exec_table
 from .execution import update_execution_cache
-from .nb_glue import glue, glue_bokeh  # noqa: F401
+from .nb_glue import glue  # noqa: F401
 from .nb_glue.domain import (
     NbGlueDomain,
     PasteInlineNode,

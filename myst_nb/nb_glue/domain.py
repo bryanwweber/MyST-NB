@@ -218,7 +218,9 @@ class PasteFigure(Paste):
 class PasteBokeh(Paste):
     def run(self):
         html_node = PasteNode(self.arguments[0])
+        self.set_source_info(html_node)
         js_node = PasteNode(self.arguments[0] + "_js")
+        self.set_source_info(js_node)
         return [html_node, js_node]
 
 

@@ -1,18 +1,18 @@
 import IPython
-from IPython.display import display as ipy_display, HTML, Javascript
+from IPython.display import display as ipy_display, Javascript
 
 GLUE_PREFIX = "application/papermill.record/"
 
 
 def glue(name, variable, display=True):
-    """Glue an variable into the notebook's cell metadata.
+    """Glue a variable into the notebook cell's metadata.
 
     Parameters
     ----------
     name: string
         A unique name for the variable. You can use this name to refer to the variable
         later on.
-    variable: python object
+    variable: Python object
         A variable in Python for which you'd like to store its display value. This is
         not quite the same as storing the object itself - the stored information is
         what is *displayed* when you print or show the object in a Jupyter Notebook.
@@ -20,23 +20,35 @@ def glue(name, variable, display=True):
         Display the object you are gluing. This is helpful in sanity-checking the
         state of the object at glue-time.
     """
-    mimebundle, metadata = IPython.core.formatters.format_display_data(variable)
     mime_prefix = "" if display else GLUE_PREFIX
-    metadata["scrapbook"] = dict(name=name, mime_prefix=mime_prefix)
-    ipy_display(
-        {mime_prefix + k: v for k, v in mimebundle.items()}, raw=True, metadata=metadata
-    )
+    metadata = {"scrapbook": dict(name=name, mime_prefix=mime_prefix)}
+    if "bokeh" in type(variable).__module__:
+        # import here to avoid a hard dependency on bokeh
+        from bokeh.embed import components
+        from bokeh.resources import CDN
 
-
-def glue_bokeh(name, figure, display=True):
-    # import here to avoid a hard dependency on bokeh
-    from bokeh.embed import components
-    from bokeh.resources import CDN
-    import xml.etree.ElementTree as ET
-
-    script, div = components(figure)
-    data = ET.fromstring(script).text
-    h = HTML(div)
-    s = Javascript(data, lib=CDN.js_files)
-    glue(name + "_js", s, display)
-    glue(name, h, display)
+        script, div = components(variable, wrap_script=False)
+        ipy_display(
+            {mime_prefix + "text/html": div},
+            raw=True,
+            metadata=metadata,
+        )
+        # Have to use Javascript here to load the BokehJS files
+        s, meta = IPython.core.formatters.format_display_data(
+            Javascript(script, lib=CDN.js_files)
+        )
+        metadata.update(meta)
+        metadata["scrapbook"]["name"] += "_js"
+        ipy_display(
+            {mime_prefix + k: v for k, v in s.items()},
+            raw=True,
+            metadata=metadata,
+        )
+    else:
+        mimebundle, meta = IPython.core.formatters.format_display_data(variable)
+        metadata.update(meta)
+        ipy_display(
+            {mime_prefix + k: v for k, v in mimebundle.items()},
+            raw=True,
+            metadata=metadata,
+        )
