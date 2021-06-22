@@ -41,7 +41,7 @@ class PasteNode(nodes.container):
         """Create the output node, give the cell output."""
         # the whole output chunk is deposited and rendered later
         # TODO move these nodes to separate module, to avoid cyclic imports
-        output_node = CellOutputBundleNode([output], "default")
+        output_node = CellOutputBundleNode([output], env.config["nb_render_plugin"])
         out_node = CellOutputNode(classes=["cell_output"])
         out_node.source, out_node.line = self.source, self.line
         out_node += output_node
